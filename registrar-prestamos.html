@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registrar Préstamo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#13294d; --logo:#4aa8f5; --primary:#4aa8f5; --green:#13c98a;
+    --bg:#edf3f6; --white:#fff; --border:#dae2e5; --subtle:#f8f8f8;
+    --text:#1f2a37; --muted:#6b7280; --link:#298ef7; --danger:#e5332a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{font-family:Inter,"Helvetica Neue",Arial,sans-serif;font-size:14px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+  button,input,select,textarea{font-family:inherit}
+
+  /* ---------- Shell ---------- */
+  .topbar{height:52px;display:flex;align-items:stretch;background:var(--navy);color:#fff}
+  .topbar__logo{width:164px;display:flex;align-items:center;padding-left:24px;background:var(--logo);font-weight:700;font-size:16px;letter-spacing:.2px}
+  .topbar__nav{flex:1;display:flex;align-items:center;gap:22px;padding-left:24px;font-size:12px;font-weight:600;letter-spacing:.3px;white-space:nowrap;overflow:hidden}
+  .topbar__nav span::after{content:"";display:inline-block;margin-left:6px;width:5px;height:5px;border-right:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(45deg) translateY(-3px);opacity:.8}
+  .topbar__right{display:flex;align-items:center;gap:26px;padding-right:24px}
+  .topbar__right svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:1.8}
+  .bell{position:relative}
+  .bell b{position:absolute;top:-6px;right:-7px;background:var(--danger);color:#fff;font-size:9px;min-width:15px;height:15px;line-height:15px;text-align:center;border-radius:8px}
+  .avatar{width:32px;height:32px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center}
+  .avatar svg{stroke:var(--navy)!important}
+
+  .subbar{height:44px;display:flex;align-items:center;background:#fff;border-bottom:1px solid var(--border)}
+  .subbar__icons{width:240px;display:flex;gap:22px;padding-left:30px}
+  .subbar__icons svg{width:20px;height:20px;stroke:#8a96a3;fill:none;stroke-width:1.8}
+  .search{margin-left:auto;margin-right:24px;width:240px;height:28px;border:1px solid var(--border);border-radius:3px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;color:#9aa6b2;font-size:12px}
+  .search svg{width:14px;height:14px;stroke:#9aa6b2;fill:none;stroke-width:2}
+
+  .body{display:flex;min-height:calc(100vh - 96px)}
+  .sidebar{width:240px;flex-shrink:0;background:#fff;border-right:1px solid var(--border)}
+  .sidebar__cta{padding:12px 16px}
+  .btn-primary{width:100%;height:36px;border:0;border-radius:3px;background:var(--primary);color:#fff;font-weight:600;font-size:13px;letter-spacing:.3px;cursor:pointer}
+  .sidebar__item{padding:12px 24px;font-weight:600;font-size:13px;background:#e7edf1}
+
+  .main{flex:1;min-width:0}
+  .page-header{background:#fff;border-bottom:1px solid var(--border);padding:16px 24px}
+  .page-header h1{margin:0;font-size:22px;font-weight:600}
+  .content{max-width:900px;margin:0 18px 0 auto;padding:60px 0 30px}
+
+  /* ---------- Cards / form ---------- */
+  .card{background:#fff;border:1px solid var(--border);border-radius:2px;padding:22px 24px 24px;margin-bottom:24px}
+  .card__title{margin:0 0 18px;font-size:15px;font-weight:600}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px 16px}
+  .field label{display:block;margin-bottom:7px;font-size:12px;font-weight:600}
+  .field label.sm{font-size:10px}
+  .input{width:100%;height:36px;padding:0 12px;font-size:13px;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:3px}
+  select.input{appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23333' stroke-width='1.6' fill='none'/%3E%3C/svg%3E") no-repeat right 12px center}
+  textarea.input{height:80px;padding:10px 12px;resize:vertical}
+
+  .tbl{width:100%;border-collapse:collapse;border:1px solid var(--border);font-size:13px}
+  .tbl th{font-size:11px;font-weight:600;background:var(--subtle);padding:9px 12px;text-align:left;border-bottom:1px solid var(--border)}
+  .tbl td{padding:9px 12px;border-bottom:1px solid #eef2f4}
+  .num{text-align:right!important}
+
+  /* ---------- Plan de pagos (estilo prod) ---------- */
+  .plan-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .plan-head .card__title{margin:0}
+  .btn-ghost{height:30px;padding:0 12px;border:1px solid var(--border);border-radius:2px;background:#f2f4f5;color:#a4b0b4;font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;cursor:pointer}
+  .btn-ghost:not([disabled]){color:var(--text);background:#fff}
+  .btn-ghost[disabled]{cursor:not-allowed}
+  .wrap{overflow-x:auto}
+  .plan{width:100%;border-collapse:collapse;font-size:12.5px;min-width:840px}
+  .plan th,.plan td{border:1px solid var(--border);padding:6px;vertical-align:middle}
+  .plan th{font-weight:700;text-align:center;white-space:normal;line-height:1.3;padding:8px 6px}
+  .plan td.idx{text-align:center;width:30px;color:var(--text)}
+  .plan td.ro{text-align:right;padding-right:10px;white-space:nowrap}
+  .plan td.center{text-align:center}
+  .cell-input{width:100%;height:30px;padding:0 8px;font-size:12.5px;border:1px solid var(--border);border-radius:2px;text-align:right;color:var(--text);background:#fff}
+  .cell-input:focus{outline:none;border-color:var(--link)}
+  .date-group{display:flex;min-width:130px}
+  .date-group .cell-input{text-align:left;border-radius:2px 0 0 2px}
+  .date-group span{width:30px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-left:0;background:var(--subtle);border-radius:0 2px 2px 0}
+  .date-group svg{width:13px;height:13px;fill:#555}
+  /* Tag de estado: mismo componente que Gestión de cobro (.sub-tag), colores de .label/.alert de Bootstrap 3 */
+  .st-tag{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:10px;border:1px solid transparent;font-weight:700;font-size:10.5px;line-height:15px;letter-spacing:.03em;text-transform:uppercase;white-space:nowrap}
+  .st-tag::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+  .st-tag--pagado{background:#dff0d8;border-color:#d0e9c6;color:#3c763d}
+  .st-tag--mora{background:#f2dede;border-color:#ebccd1;color:#a94442}
+  .st-tag--parcial{background:#fcf8e3;border-color:#faebcc;color:#8a6d3b}
+  /* NUEVO: no validado contra prod — Gestión de cobro no tenía estado neutro */
+  .st-tag--pendiente{background:#f5f5f5;border-color:#e3e3e3;color:#666}
+  .plan tr.total td{background:var(--subtle);font-weight:700;text-align:right;padding:10px}
+  .plan tr.total td.lbl{text-align:center}
+  .plan tr.is-new td{background:#f3f9ff}
+
+  /* NUEVO: no validado contra prod — columna de acciones por fila */
+  .row-actions{display:inline-flex;border:1px solid var(--border);border-radius:2px;overflow:hidden;background:#fff}
+  .row-actions button{width:30px;height:28px;border:0;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .row-actions button+button{border-left:1px solid var(--border)}
+  .row-actions button:hover{background:var(--subtle)}
+  .row-actions svg{width:14px;height:14px;fill:none;stroke:#7b8790;stroke-width:2}
+  .row-actions button.del:hover svg{stroke:var(--danger)}
+  .row-actions button[disabled]{cursor:not-allowed;opacity:.35}
+  .row-actions button[disabled]:hover{background:#fff}
+  .plan-warn{margin-top:10px;font-size:12px;color:#a94442;display:none}
+
+  .footer{display:flex;justify-content:flex-end}
+  .btn-save{height:40px;padding:0 24px;border:0;border-radius:3px;background:var(--green);color:#fff;font-weight:700;font-size:14px;letter-spacing:.3px;cursor:pointer}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar__logo">FINANZAS ERP</div>
+  <nav class="topbar__nav">
+    <span>CONFIGURACIÓN</span><span>VENTAS</span><span>COMPRAS</span><span>STOCK</span><span>PRODUCCIÓN</span><span>GANADERÍA</span><span>RRHH</span><span>BIENES RAÍCES</span><span>FINANZAS</span><span>CONTABILIDAD</span>
+  </nav>
+  <div class="topbar__right">
+    <svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>
+    <div class="bell"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 20a2 2 0 0 0 4 0"/></svg><b>5</b></div>
+    <div class="avatar"><svg viewBox="0 0 24 24" style="width:18px;height:18px"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/></svg></div>
+  </div>
+</header>
+
+<div class="subbar">
+  <div class="subbar__icons">
+    <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/></svg>
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>
+    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+  </div>
+  <div class="search">Buscar en BIMS <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></div>
+</div>
+
+<div class="body">
+  <aside class="sidebar">
+    <div class="sidebar__cta"><button class="btn-primary">REGISTRAR PRÉSTAMO</button></div>
+    <div class="sidebar__item">Listar Préstamos</div>
+  </aside>
+
+  <main class="main">
+    <div class="page-header"><h1>Registrar Préstamo</h1></div>
+
+    <div class="content">
+      <section class="card">
+        <h2 class="card__title">Información general del préstamo recibido</h2>
+        <div class="grid">
+          <div class="field"><label>Número</label><input class="input" value="0800083"></div>
+          <div class="field"><label>Acreedor / Banco / Entidad</label><select class="input"><option>Ueno Bank</option></select></div>
+          <div class="field"><label>Tipo Préstamo</label><select class="input"><option>Préstamo Financiero</option></select></div>
+          <div class="field"><label>Fecha Préstamo</label><input class="input" value="27/08/2026"></div>
+          <div class="field"><label>Moneda</label><select class="input"><option>Dólares (USD)</option></select></div>
+          <div class="field"><label>Tipo De Cambio</label><input class="input" value="1.0000"></div>
+          <div class="field"><label>Capital Inicial (Monto)</label><input class="input" id="capital" value="50,000,000"></div>
+          <div class="field"><label>Tasa De Interés Anual (%)</label><input class="input" value="14.00%"></div>
+          <div class="field"><label>Comisión Préstamo</label><input class="input" value="1,200,000"></div>
+          <div class="field"><label>Cuenta De Depósito</label><select class="input"><option>Banco Itaú - Cta. Cte. USD</option></select></div>
+          <div class="field"><label>Plazo</label><input class="input" value="12"></div>
+          <div class="field"><label>Período</label><select class="input"><option>Meses</option></select></div>
+          <div class="field"><label>Fecha Del Primer Pago</label><input class="input" value="27/09/2026"></div>
+          <div class="field"><label class="sm">Amortización Mensual (Cuota Promedio)</label><input class="input" value="4,308,657"></div>
+          <div class="field"><label>Banco Custodio</label><select class="input"><option>Ueno Bank</option></select></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card__title">Fechas de desembolso</h2>
+        <table class="tbl">
+          <thead><tr><th style="width:60px">#</th><th>Fecha</th><th class="num">Monto desembolsado</th><th class="num">Saldo pendiente</th></tr></thead>
+          <tbody><tr><td>1</td><td>27/08/2026</td><td class="num">50,000,000</td><td class="num">50,000,000</td></tr></tbody>
+        </table>
+      </section>
+
+      <!-- ===== Plan de pagos: reemplaza la tabla anterior por la de prod + acciones ===== -->
+      <section class="card">
+        <div class="plan-head">
+          <h2 class="card__title">Plan de pagos (Amortizaciones)</h2>
+          <button class="btn-ghost" id="btn-calc" disabled onclick="recalcular()">Calcular automáticamente</button>
+        </div>
+        <div class="wrap">
+          <table class="plan">
+            <thead>
+              <tr>
+                <th style="width:30px">#</th>
+                <th style="width:150px">Vencimiento</th>
+                <th>Amortización capital</th>
+                <th>Intereses y Comisiones Facturados / a Facturar</th>
+                <th>Monto Total Cuota</th>
+                <th>Saldo Capital</th>
+                <th style="width:112px">Pagado</th>
+                <th style="width:80px">Estado</th>
+                <th style="width:74px">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="plan-body"></tbody>
+            <tfoot>
+              <tr class="total">
+                <td colspan="2" class="lbl">Totales Plan de Pagos</td>
+                <td id="t-cap"></td><td id="t-int"></td><td id="t-tot"></td>
+                <td id="t-saldo"></td><td id="t-pag"></td><td></td><td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div class="plan-warn" id="warn"></div>
+      </section>
+
+      <section class="card">
+        <h2 class="card__title">Notas</h2>
+        <textarea class="input"></textarea>
+      </section>
+
+      <div class="footer"><button class="btn-save">GUARDAR PRÉSTAMO</button></div>
+    </div>
+  </main>
+</div>
+
+<script>
+const CAPITAL = 50000000;
+const fmt = n => Math.round(n).toLocaleString('en-US');
+const parse = s => Number(String(s).replace(/[^\d.-]/g,'')) || 0;
+const pad = n => String(n).padStart(2,'0');
+const toStr = d => `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
+const toDate = s => { const [d,m,y] = s.split('/').map(Number); return new Date(y, m-1, d); };
+const addMonth = s => { const d = toDate(s); d.setMonth(d.getMonth()+1); return toStr(d); };
+
+const base = [
+  ['27/09/2026',3923551,385106],['27/10/2026',3953551,355106],['27/11/2026',3983551,325106],
+  ['27/12/2026',4013551,295106],['27/01/2027',4043551,265106],['27/02/2027',4073551,235106],
+  ['27/03/2027',4103551,205106],['27/04/2027',4133551,175106],['27/05/2027',4163551,145106],
+  ['27/06/2027',4193551,115106],['27/07/2027',4223551,85106],['27/08/2027',5190939,117718]
+];
+// Pagos de ejemplo para mostrar los cuatro estados (hoy > 1.ª cuota vencida)
+const pagosEjemplo = [3000000, 4308657, 1500000];
+const mkRows = () => base.map(([venc,cap,int],i) => ({venc, cap, int, pagado: pagosEjemplo[i] || 0}));
+let rows = mkRows();
+
+const HOY = new Date(); HOY.setHours(0,0,0,0);
+const ESTADOS = { pagado:'Pagado', mora:'En mora', parcial:'Parcial', pendiente:'Pendiente' };
+function estado(r){
+  const monto = r.cap + r.int, pag = r.pagado;
+  if (monto === 0 && pag === 0) return null;          // fila vacía: sin estado
+  if (monto > 0 && pag === monto) return 'pagado';
+  if (toDate(r.venc) < HOY && pag < monto) return 'mora';
+  if (pag > 0 && pag < monto) return 'parcial';
+  return 'pendiente';
+}
+const tag = r => { const e = estado(r); return e ? `<span class="st-tag st-tag--${e}">${ESTADOS[e]}</span>` : ''; };
+let dirty = false;
+
+const calIcon = '<svg viewBox="0 0 16 16"><path d="M3 1h2v2h6V1h2v2h2v12H1V3h2zM3 6v7h10V6z"/><path d="M4 7h2v2H4zM7 7h2v2H7zM10 7h2v2h-2zM4 10h2v2H4zM7 10h2v2H7z"/></svg>';
+const plusIcon = '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>';
+const trashIcon = '<svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>';
+
+function render(newIndex){
+  const tb = document.getElementById('plan-body');
+  let saldo = CAPITAL;
+  tb.innerHTML = rows.map((r,i) => {
+    saldo -= r.cap;
+    return `<tr class="${i===newIndex?'is-new':''}">
+      <td class="idx">${i+1}</td>
+      <td><div class="date-group"><input class="cell-input" value="${r.venc}" onchange="upd(${i},'venc',this.value)"><span>${calIcon}</span></div></td>
+      <td><input class="cell-input" value="${fmt(r.cap)}" onchange="upd(${i},'cap',this.value)"></td>
+      <td><input class="cell-input" value="${fmt(r.int)}" onchange="upd(${i},'int',this.value)"></td>
+      <td><input class="cell-input" value="${fmt(r.cap+r.int)}" readonly tabindex="-1"></td>
+      <td class="ro">${fmt(Math.max(saldo,0))}</td>
+      <td><input class="cell-input" value="${fmt(r.pagado)}" onchange="upd(${i},'pagado',this.value)"></td>
+      <td class="center">${tag(r)}</td>
+      <td class="center">
+        <div class="row-actions">
+          <button title="Agregar fila debajo" onclick="addRow(${i})">${plusIcon}</button>
+          <button class="del" title="Eliminar fila" onclick="delRow(${i})" ${rows.length===1?'disabled':''}>${trashIcon}</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  const sum = k => rows.reduce((a,r)=>a+r[k],0);
+  const tCap = sum('cap'), tInt = sum('int');
+  document.getElementById('t-cap').textContent = fmt(tCap);
+  document.getElementById('t-int').textContent = fmt(tInt);
+  document.getElementById('t-tot').textContent = fmt(tCap+tInt);
+  document.getElementById('t-saldo').textContent = fmt(Math.max(CAPITAL - tCap,0));
+  document.getElementById('t-pag').textContent = fmt(sum('pagado'));
+
+  const warn = document.getElementById('warn');
+  const diff = CAPITAL - tCap;
+  if (diff !== 0){
+    warn.style.display = 'block';
+    warn.textContent = diff > 0
+      ? `La suma de amortizaciones es menor al capital inicial. Faltan ${fmt(diff)} para completar el plan.`
+      : `La suma de amortizaciones supera al capital inicial en ${fmt(-diff)}.`;
+  } else warn.style.display = 'none';
+
+  document.getElementById('btn-calc').disabled = !dirty;
+}
+
+function upd(i,k,v){ rows[i][k] = k==='venc' ? v : parse(v); dirty = true; render(); }
+
+function addRow(i){
+  rows.splice(i+1, 0, { venc: addMonth(rows[i].venc), cap:0, int:0, pagado:0 });
+  dirty = true; render(i+1);
+  document.querySelectorAll('#plan-body tr')[i+1].querySelectorAll('.cell-input')[1].focus();
+}
+
+function delRow(i){
+  if (rows.length === 1) return;
+  rows.splice(i,1); dirty = true; render();
+}
+
+function recalcular(){
+  rows = mkRows();
+  dirty = false; render();
+}
+
+render();
+</script>
+</body>
+</html>
